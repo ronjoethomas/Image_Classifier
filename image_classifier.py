@@ -15,7 +15,7 @@ import image_plot_helper
 
 #this directory is where the data for testing and training are located
 
-data_dir = '/home/ron/Downloads/Cat_Dog_data/Cat_Dog_data'
+data_directory = '/home/ron/python_projects/Image_classifier/Image_Classifier/Animal_Data/Animal_data'
 
 train_transforms = transforms.Compose([transforms.RandomRotation(30),
                                        transforms.RandomResizedCrop(224),
@@ -31,8 +31,8 @@ test_transforms = transforms.Compose([transforms.Resize(255),
                                                            [0.229, 0.224, 0.225])])
 
 # Pass transforms in here, then run the next cell to see how the transforms look
-train_data = datasets.ImageFolder(data_dir + '/train', transform=train_transforms)
-test_data = datasets.ImageFolder(data_dir + '/test', transform=test_transforms)
+train_data = datasets.ImageFolder(data_directory + '/train', transform=train_transforms)
+test_data = datasets.ImageFolder(data_directory + '/test', transform=test_transforms)
 
 trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True)
 testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle = True)
@@ -46,10 +46,10 @@ for param in model.parameters():
 
 
 #create the new classifier
-model.classifier = nn.Sequential(nn.Linear(1024, 256),
+model.classifier = nn.Sequential(nn.Linear(1024, 512),
                                  nn.ReLU(),
-                                 nn.Dropout(0.2),
-                                 nn.Linear(256, 2),
+                                 nn.Dropout(0.3),
+                                 nn.Linear(512, 2),
                                  nn.LogSoftmax(dim=1))
 
 #set device to cuda if available or put 'cpu' here
@@ -90,10 +90,6 @@ for e in range(epochs):
 
         running_loss += loss.item()
 
-        #This model used from the transfer is very efficient. No need to go through all pictures 
-        if times == 10:
-            break
-
     #Testing Loop (measure accuracy)
     model.eval()
     accuracy = 0
@@ -112,12 +108,10 @@ for e in range(epochs):
             #calculate accuracy
             accuracy += torch.mean(equals.type(torch.FloatTensor))
             turns+=turns
-            if turns == 3:
-                break
-
         #consider the average accuracy of all test cases
     
     print("Test: The accuracy based on test images is: {:.3f}".format(accuracy/len(testloader)))
+
         
 
 #-----after testing, change the above part to a load /save situation and load the model onto another file to perform the plotting easier-------
@@ -125,32 +119,35 @@ for e in range(epochs):
 #plotting the probablity
 
 model.eval()
+torch.save(model, 'trained_specific_model.pth')
 
-#can change test loader to any loader that contains the image that we want to see 
-test_iter = iter(testloader)
-images,labels = test_iter.next()
+while True:
+    #can change test loader to any loader that contains the image that we want to see 
+    test_iter = iter(testloader)
+    images,labels = test_iter.next()
 
-images,labels = images.to(device),labels.to(device)
+    images,labels = images.to(device),labels.to(device)
 
-print(images.size())
+    #get the first image(just to test, can chanage thos)
+    image_current=images[0]
 
-#get the first image(just to test, can chanage thos)
-image_current=images[0]
-print(image_current.size())
+    image_current=image_current.view(1,3,224,224)
 
-image_current=image_current.view(1,3,224,224)
-
-with torch.no_grad():
-    output = model.forward(image_current)
-
-ps = torch.exp(output)
+    with torch.no_grad():
+        output = model.forward(image_current)
     
-fig, (ax1, ax2) = plt.subplots(figsize=(12,14), ncols=2)
+    #create the plot
+    ps = torch.exp(output)
+    fig, (ax1, ax2) = plt.subplots(figsize=(12,14), ncols=2)
+    image_plot_helper.imshow(images[0].cpu(),ax=ax1)
+    image_plot_helper.graphShow(ax=ax2,ps=ps.cpu())
+    plt.show()
 
-image_plot_helper.imshow(images[0].cpu(),ax=ax1)
+    #once user closes image, prompt for user input
+    typed_instruction = input("Please press any key (and/or enter) to show a new random image. Or type in 'exit' to stop: ")
 
-image_plot_helper.graphShow(ax=ax2,ps=ps.cpu())
-
-plt.show()
+    if typed_instruction == 'exit':
+        break
+    
 
 

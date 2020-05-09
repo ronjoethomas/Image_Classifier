@@ -1,14 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from torch import nn, optim
 
 def imshow(image, ax=None):
-    """Imshow for Tensor."""
-    if ax is None:
-        fig, ax = plt.subplots()
     image = image.numpy().transpose((1, 2, 0))
-
-
     ax.imshow(image)
     ax.tick_params(axis='both', length=0)
     ax.set_xticklabels('')
