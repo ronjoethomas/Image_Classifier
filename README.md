@@ -1,7 +1,7 @@
 # Image_Classifier
 Utilizing Deep learning to implement a basic image classifier
 
-Note: Need to download the dataset of cats and dogs in order to use. This can be any dataset of cats and dogs but you can use the one provided by udacity
+Note: Need to download the dataset of cats and dogs in order to use. This can be any dataset of cats and dogs but you can use the one provided by a kaggle user https://www.kaggle.com/c/dogs-vs-cats/data .
 
 Run 'main' file if you only want to see the newly trained model working without the actual training part
 
